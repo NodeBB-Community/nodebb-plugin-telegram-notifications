@@ -11,9 +11,6 @@
 		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true }
 	],
 	"templates": "static/templates",
-	"less": [
-		"static/style.less"
-	],
 	"scripts": [
 		"lib/client-settings.js"
 	]
