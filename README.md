@@ -14,5 +14,5 @@ This will install all libs the plugin needs.
 
 1. Install and activate this plugin.
 1. [Create your Bot](https://core.telegram.org/bots/), and obtain your bot token
-1. Enter the token into the plugin's setup page (`/admin/pushbullet`), and save.
+1. Enter the token into the plugin's setup page (`/admin/telegram`), and save.
 1. Reload NodeBB.
