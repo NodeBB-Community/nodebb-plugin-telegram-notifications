@@ -13,7 +13,7 @@
 		if(data && data.token)
 		{
 			$("#telegramid").val(data.token);
-			console.log(data);
+			$("#msg").val(data.msg);
 		}
 	});
 
