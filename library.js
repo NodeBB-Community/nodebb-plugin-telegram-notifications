@@ -77,8 +77,8 @@ Telegram.init = function(params, callback) {
 			{
 				message = "Your Telegram ID: {userid}";
 			}
-			message = message.replace("{userid}", userId);
-			bot.sendMessage(chatId, message);
+			var messageToSend = message.replace("{userid}", msg.from.id);
+			bot.sendMessage(msg.chat.id, messageToSend);
 		});
 
 
