@@ -100,9 +100,9 @@ var parseCommands = function(telid, mesg)
 	if(mesg.indexOf("/") == 0)
 	{
 		db.sortedSetScore('telegramid:uid', telid, function(err, uid){
-			if(err)
+			if(err || !uid)
 			{
-				return bot.sendMessage(telid, "UserID not found.. Put your TelgramID again in the telegram setting of the forum. :(");
+				return bot.sendMessage(telid, "UserID not found.. Put your TelegramID again in the telegram settings of the forum. :(");
 			}
 			var command = mesg.split(" "); // Split command
 			if(command[0].toLowerCase() == "/r" && command.length >= 3)
