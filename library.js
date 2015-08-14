@@ -144,7 +144,7 @@ var parseCommands = function(telid, mesg)
 					data.fromuid = uid;
 					command.splice(0, 2); // Delete /chat and username, only keep the message
 					data.content = command.join(" "); // recover the message
-					messaging.addMessage(uid, touid, data.content, Date.now(), function(err, r){
+					messaging.addMessage(uid, touid, data.content, function(err, r){
 						if(err)
 						{
 							bot.sendMessage(telid, "Error..");
