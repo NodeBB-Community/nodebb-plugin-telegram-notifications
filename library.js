@@ -5,6 +5,7 @@ var db = module.parent.require('./database'),
 	user = module.parent.require('./user'),
 	posts = module.parent.require('./posts'),
 	topics = module.parent.require('./topics'),
+	messaging = module.parent.require('./messaging'),
 	SocketPlugins = module.parent.require('./socket.io/plugins'),
 	winston = module.parent.require('winston'),
 	nconf = module.parent.require('nconf'),
@@ -73,17 +74,80 @@ Telegram.init = function(params, callback) {
 			var chatId = msg.chat.id;
 			var userId = msg.from.id;
 			var username = msg.from.username;
+			var text = msg.text;
 			if(!message)
 			{
 				message = "Your Telegram ID: {userid}";
 			}
-			var messageToSend = message.replace("{userid}", msg.from.id);
-			bot.sendMessage(msg.chat.id, messageToSend);
+			if(text.indexOf("/") == 0)
+			{
+				parseCommands(userId, text);
+			}
+			else
+			{
+				var messageToSend = message.replace("{userid}", msg.from.id);
+				bot.sendMessage(msg.chat.id, messageToSend);
+			}
 		});
 
 
 		callback();
 	});
+};
+
+var parseCommands = function(telid, mesg)
+{
+	if(mesg.indexOf("/") == 0)
+	{
+		db.sortedSetScore('telegramid:uid', telid, function(err, uid){
+			if(err)
+			{
+				return bot.sendMessage(telid, "UserID not found.. Put your TelgramID again in the telegram setting of the forum. :(");
+			}
+			var command = mesg.split(" "); // Split command
+			if(command[0].toLowerCase() == "/r" && command.length >= 3)
+			{	// It's a reply to a topic!
+				var data = {};
+				data.uid = uid;
+				data.tid = command[1];
+				command.splice(0, 2); // Delete /r and topic id, only keep the message
+				data.content = command.join(" "); // recover the message
+				posts.create(data, function(err, r){
+					if(err)
+					{
+						bot.sendMessage(telid, "Error..");
+					}
+					else
+					{
+						bot.sendMessage(telid, "OK!");
+					}
+				});
+			}
+			else if(command[0].toLowerCase() == "/chat" && command.length >= 3)
+			{	// It's a reply to a topic!
+				var data = {};
+				user.getUidByUserslug(command[1], function(err, touid){
+					if(err || !touid)
+					{
+						return bot.sendMessage(telid, "Error..");
+					}
+					data.fromuid = uid;
+					command.splice(0, 2); // Delete /chat and username, only keep the message
+					data.content = command.join(" "); // recover the message
+					messaging.addMessage(uid, touid, data.content, Date.now(), function(err, r){
+						if(err)
+						{
+							bot.sendMessage(telid, "Error..");
+						}
+						else
+						{
+							bot.sendMessage(telid, "OK!");
+						}
+					});
+				});
+			}
+		});
+	}
 };
 
 Telegram.getUserLanguage = function(uid, callback) {
@@ -205,7 +269,10 @@ SocketAdmins.getTelegramToken = function (socket, data, callback)
 
 SocketPlugins.setTelegramID = function (socket, data, callback)
 {
-	user.setUserField(socket.uid, "telegramid", data, callback);
+	user.setUserField(socket.uid, "telegramid", data, function(err){
+		var obj = { value: data, score:socket.uid };
+		db.setObject("telegramid:uid", obj, callback); // Index to get uid from telegramid
+	});
 }
 
 SocketPlugins.getTelegramID = function (socket, data, callback)

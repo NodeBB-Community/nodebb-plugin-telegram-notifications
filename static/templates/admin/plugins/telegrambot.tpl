@@ -7,6 +7,10 @@
 
 <h3>You need restart your server to use the message and token.</h3>
 
+<h2>Avaiable Commands:</h2>
+<b>Reply to a topic: /r topicid reply</b>
+<b>Send chat message: /chat userslug message</b>
+
 
 <script type="text/javascript">
 	socket.emit('admin.getTelegramToken',{}, function(err, data){
