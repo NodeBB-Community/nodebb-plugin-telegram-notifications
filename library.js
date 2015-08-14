@@ -122,14 +122,23 @@ var parseCommands = function(telid, mesg)
 				data.tid = command[1];
 				command.splice(0, 2); // Delete /r and topic id, only keep the message
 				data.content = command.join(" "); // recover the message
-				posts.create(data, function(err, r){
-					if(err)
+				user.isReadyToPost(uid, function(err){
+					if(!err)
 					{
-						bot.sendMessage(telid, "Error..");
+						posts.create(data, function(err, r){
+							if(err)
+							{
+								bot.sendMessage(telid, "Error..");
+							}
+							else
+							{
+								bot.sendMessage(telid, "OK!");
+							}
+						});
 					}
 					else
 					{
-						bot.sendMessage(telid, "OK!");
+						bot.sendMessage(telid, "Error..");
 					}
 				});
 			}
