@@ -117,10 +117,9 @@ Telegram.pushNotification = function(data) {
 	// Send notification for each user.
 	user.getMultipleUserFields(uids, ["telegramid"], function(err, usersData){
 		//console.log(usersData);
-		for(var i in usersData)
-		{
-			var telegramId = usersData[i].telegramid;
-			var uid = usersData[i].uid;
+		async.eachSeries(usersData, function iterator(user, cb){
+			var telegramId = user.telegramid;
+			var uid = user.uid;
 
 			async.waterfall([
 				function(next){
@@ -158,9 +157,10 @@ Telegram.pushNotification = function(data) {
 
 					winston.verbose('[plugins/telegram] Sending notification to uid ' + uid);
 					bot.sendMessage(telegramId, body);
+					cb(); // Go next user in array (async.eachSeries)
 				}
 			]);
-		}
+		});
 	});
 };
 
