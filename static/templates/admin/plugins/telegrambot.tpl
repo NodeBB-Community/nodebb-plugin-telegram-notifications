@@ -7,9 +7,9 @@
 
 <h3>You need restart your server to use the message and token.</h3>
 
-<h2>Avaiable Commands:</h2>
-<b>Reply to a topic: /r topicid reply</b>
-<b>Send chat message: /chat userslug message</b>
+<h2>Available Commands:</h2>
+<b>Reply to a topic: /r topicid reply</b><br>
+<b>Send chat message: /chat userslug message</b><br>
 
 
 <script type="text/javascript">
