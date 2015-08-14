@@ -269,9 +269,22 @@ SocketAdmins.getTelegramToken = function (socket, data, callback)
 
 SocketPlugins.setTelegramID = function (socket, data, callback)
 {
-	user.setUserField(socket.uid, "telegramid", data, function(err){
-		var obj = { value: data, score:socket.uid };
-		db.setObject("telegramid:uid", obj, callback); // Index to get uid from telegramid
+	user.getUserField(socket.uid, "telegramid", function(err, telid){
+		if(telid)
+		{
+			db.sortedSetRemove("telegramid:uid", telid); // Remove previus index
+		}
+		user.setUserField(socket.uid, "telegramid", data, function(err){
+			if(data && data != "")
+			{
+				var obj = { value: data, score:socket.uid };
+				db.setObject("telegramid:uid", obj, callback); // Index to get uid from telegramid
+			}
+			else
+			{
+				callback(null, "");
+			}
+		});
 	});
 }
 
