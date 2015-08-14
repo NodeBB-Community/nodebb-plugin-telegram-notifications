@@ -58,6 +58,16 @@ Telegram.init = function(params, callback) {
 		lang_cache = cache(cacheOpts);
 	});
 
+	startBot();
+
+	callback();
+};
+
+function startBot()
+{
+	// For multiple instances servers!!
+	var port = nconf.get('port');
+	var mainPort = 4567; // Main instace port, only one instance can reply and parse commands!
 	// Prepare bot
 	db.getObject('telegrambot-token', function(err, t){
 		if(err || !t)
@@ -70,30 +80,30 @@ Telegram.init = function(params, callback) {
 		// Setup polling way
 		bot = new TelegramBot(token, {polling: true});
 
-		bot.on('text', function (msg) {
-			var chatId = msg.chat.id;
-			var userId = msg.from.id;
-			var username = msg.from.username;
-			var text = msg.text;
-			if(!message)
-			{
-				message = "Your Telegram ID: {userid}";
-			}
-			if(text.indexOf("/") == 0)
-			{
-				parseCommands(userId, text);
-			}
-			else
-			{
-				var messageToSend = message.replace("{userid}", msg.from.id);
-				bot.sendMessage(msg.chat.id, messageToSend);
-			}
-		});
-
-
-		callback();
+		if(port == mainPort)
+		{	// Only parse commands and reply on main instance!!
+			bot.on('text', function (msg) {
+				var chatId = msg.chat.id;
+				var userId = msg.from.id;
+				var username = msg.from.username;
+				var text = msg.text;
+				if(!message)
+				{
+					message = "Your Telegram ID: {userid}";
+				}
+				if(text.indexOf("/") == 0)
+				{
+					parseCommands(userId, text);
+				}
+				else
+				{
+					var messageToSend = message.replace("{userid}", msg.from.id);
+					bot.sendMessage(msg.chat.id, messageToSend);
+				}
+			});
+		}
 	});
-};
+}
 
 var parseCommands = function(telid, mesg)
 {
