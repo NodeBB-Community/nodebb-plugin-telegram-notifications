@@ -288,7 +288,7 @@ SocketPlugins.setTelegramID = function (socket, data, callback)
 			if(data && data != "")
 			{
 				var obj = { value: data, score:socket.uid };
-				db.setObject("telegramid:uid", obj, callback); // Index to get uid from telegramid
+				db.sortedSetAdd("telegramid:uid", socket.uid, data, callback); // Index to get uid from telegramid
 			}
 			else
 			{
