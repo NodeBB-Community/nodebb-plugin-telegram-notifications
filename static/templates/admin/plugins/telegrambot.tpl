@@ -10,6 +10,8 @@
 <h2>Available Commands:</h2>
 <b>Reply to a topic: /r topicid reply</b><br>
 <b>Send chat message: /chat userslug message</b><br>
+<b>Recent Topics: /recent numTopics (numTopics is optional)</b><br>
+<b>Read Topic (show last 10 posts of the topic): /read topicid</b><br>
 
 
 <script type="text/javascript">

@@ -14,6 +14,7 @@ var db = module.parent.require('./database'),
 	cache = require('lru-cache'),
 	lang_cache,
 	translator = module.parent.require('../public/src/modules/translator'),
+	moment = require('./lib/moment.min.js'),
 
 	Telegram = {};
 var SocketAdmins = module.parent.require('./socket.io/admin');
@@ -162,6 +163,67 @@ var parseCommands = function(telid, mesg)
 						{
 							bot.sendMessage(telid, "OK!");
 						}
+					});
+				});
+			}
+			else if(command[0].toLowerCase() == "/recent")
+			{
+				var data = {};
+				var numTopics = command[1] || 10;
+				numTopics = Math.min(30, numTopics);
+				topics.getTopicsFromSet('topics:recent', uid, 0, Math.max(1, numTopics), function(err, topics) {
+					if (err)
+					{
+						return bot.sendMessage(telid, "Error..");
+					}
+
+					var response = "";
+					topics = topics.topics;
+
+					for(var i in topics)
+					{
+						var title = topics[i].title;
+						var tid = topics[i].tid;
+						var user = topics[i].user.username;
+						var time = moment.unix(topics[i].lastposttime / 1000).fromNow();
+						response += title + " [ID: " + tid + "] " + time + " by " + user + "\n~~~~~~~~~~~~~~\n";
+					}
+					bot.sendMessage(telid, response);
+				});
+			}
+			else if(command[0].toLowerCase() == "/read" && command.length >= 2)
+			{
+				var data = {};
+				var tid = command[1];
+				topics.getPids(tid, function(err, pids){
+					posts.getPostsByPids(pids, uid, function(err, posts){
+						if (err)
+						{
+							return bot.sendMessage(telid, "Error..");
+						}
+						
+						var response = "";
+						var postsuids = [];
+
+						for(var i in posts)
+						{
+							postsuids.push(posts[i].uid);
+						}
+
+						user.getMultipleUserFields(postsuids, ["username"], function(err, usernames){
+							var numPosts = 10;
+							var start = posts.length-numPosts > 0 ? posts.length-numPosts : 0;
+							for(var i=start; i<posts.length;i++)
+							{
+								var username = usernames[i].username;
+								var content = posts[i].content;
+								var tid = posts[i].tid;
+								var time = moment.unix(posts[i].timestamp / 1000).fromNow();
+								response += content + " \n " + time + " by " + username + "\n~~~~~~~~~~~~~~\n";
+							}
+							bot.sendMessage(telid, response);
+						});
+						
 					});
 				});
 			}
