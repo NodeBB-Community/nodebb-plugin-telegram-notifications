@@ -186,7 +186,8 @@ var parseCommands = function(telid, mesg)
 						var tid = topics[i].tid;
 						var user = topics[i].user.username;
 						var time = moment.unix(topics[i].lastposttime / 1000).fromNow();
-						response += title + " [ID: " + tid + "] " + time + " by " + user + "\n~~~~~~~~~~~~~~\n";
+						var url = nconf.get("url") + "/topic/" + tid;
+						response += title + " " + time + " by " + user + "\n" + url + "\n~~~~~~~~~~~~~~\n";
 					}
 					bot.sendMessage(telid, response);
 				});
@@ -217,11 +218,12 @@ var parseCommands = function(telid, mesg)
 							{
 								var username = usernames[i].username;
 								var content = posts[i].content;
+								content = content.replace(/\<[^\>]*\>/gi, "");
 								var tid = posts[i].tid;
 								var time = moment.unix(posts[i].timestamp / 1000).fromNow();
-								response += content + " \n " + time + " by " + username + "\n~~~~~~~~~~~~~~\n";
+								response = content + " \n " + time + " by " + username + "\n~~~~~~~~~~~~~~\n";
+								bot.sendMessage(telid, response);
 							}
-							bot.sendMessage(telid, response);
 						});
 						
 					});
