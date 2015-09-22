@@ -17,7 +17,7 @@ This will install all libs the plugin needs.
 3. Enter the token into the plugin's setup page (`/admin/telegram`), and save.
 4. Reload NodeBB.
 
-## User Congig
+## User Config
 1. Talk to the bot and get user token
 2. Go to yourdomain/telegram/settings and fill the token
 3. Have fun
@@ -34,3 +34,7 @@ Show Recent
 
 Show last post on a topic
 /read topicID (number of posts)
+
+Known bugs: 
+Reloading nodebb will keep several instances loaded, please use restart nodebb to run telegram plugin properly
+If you have several instances of nodebb you must run the plugin on main instance with a port non set on other instances, can change mainport in library.js
