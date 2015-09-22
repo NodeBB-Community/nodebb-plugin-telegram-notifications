@@ -36,5 +36,6 @@ Show last post on a topic
 /read topicID (number of posts)
 
 Known bugs: 
-Reloading nodebb will keep several instances loaded, please use restart nodebb to run telegram plugin properly
-If you have several instances of nodebb you must run the plugin on main instance with a port non set on other instances, can change mainport in library.js
+1. Please use restart instead of reload on nodebb to run telegram plugin properly or you will have several instances running
+
+2. If you have nodebb scaling you must run the plugin on main server with a port non set on other instances, can change mainport in library.js
