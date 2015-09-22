@@ -68,7 +68,7 @@ function startBot()
 {
 	// For multiple instances servers!!
 	var port = nconf.get('port');
-	var mainPort = 4569; // Main instace port, only one instance can reply and parse commands!
+	var mainPort = 4567; // Main instace port, only one instance can reply and parse commands!
 	// Prepare bot
 	db.getObject('telegrambot-token', function(err, t){
 		if(err || !t)
