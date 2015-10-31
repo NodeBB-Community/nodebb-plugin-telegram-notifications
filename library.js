@@ -73,7 +73,7 @@ function startBot()
 	db.getObject('telegrambot-token', function(err, t){
 		if(err || !t)
 		{
-			return callback();
+			return;
 		}
 
 		token = t.token;
