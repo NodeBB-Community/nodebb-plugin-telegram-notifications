@@ -5,7 +5,7 @@
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/segura2010/nodebb-plugin-telegram-notifications/"
+    "url": "https://github.com/exo-do/nodebb-plugin-telegram-notifications"
   },
   "keywords": [
     "nodebb",
@@ -19,13 +19,13 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/segura2010/nodebb-plugin-telegram-notifications/issues"
+    "url": "https://github.com/exo-do/nodebb-plugin-telegram-notifications/issues"
   },
   "readmeFilename": "README.md",
   "dependencies": {
     "node-telegram-bot-api":"latest"
   },
   "nbbpm": {
-    "compatibility": "^0.6.0"
+     "compatibility": "^0.7.0 || ^0.8.0"
   }
 }
