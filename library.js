@@ -294,7 +294,6 @@ Telegram.pushNotification = function(data) {
 				},
 				function(data, next) {
 					// Send notification
-					console.log(data);
 					var title = data.title;
 					var url = notifObj.path || (nconf.get('url') + '/topic/' + data.topicSlug + '/' + data.postIndex);
 					var body = title + "\n\n" + notifObj.bodyLong + "\n\n" + url;
