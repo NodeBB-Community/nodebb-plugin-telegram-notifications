@@ -36,7 +36,7 @@ Telegram.init = function(params, callback) {
 	controllers.getTelegramBotSettings = function (req, res, next) {
 		// Renderiza la plantilla
 		bot.getMe().then(function(me){
-			res.render('telegrambot/settings', {botname:me.username});
+			res.render('telegrambot/telegramusersettings', {botname:me.username});
 		});
 	};
 
@@ -123,24 +123,31 @@ var parseCommands = function(telid, mesg)
 				data.tid = command[1];
 				command.splice(0, 2); // Delete /r and topic id, only keep the message
 				data.content = command.join(" "); // recover the message
-				user.isReadyToPost(uid, function(err){
-					if(!err)
+				topics.getTopicData(data.tid, function(err, topicData){
+					if(err || !topicData)
 					{
-						posts.create(data, function(err, r){
-							if(err)
-							{
-								bot.sendMessage(telid, "Error..");
-							}
-							else
-							{
-								bot.sendMessage(telid, "OK!");
-							}
-						});
+						return bot.sendMessage(telid, "Error.. invalid topic..");
 					}
-					else
-					{
-						bot.sendMessage(telid, "Error..");
-					}
+					var cid = topicData.cid; console.log(topicData);
+					user.isReadyToPost(uid, cid, function(err){
+						if(!err)
+						{
+							posts.create(data, function(err, r){
+								if(err)
+								{
+									bot.sendMessage(telid, "Error..");
+								}
+								else
+								{
+									bot.sendMessage(telid, "OK!");
+								}
+							});
+						}
+						else
+						{
+							bot.sendMessage(telid, "Error..");
+						}
+					});
 				});
 			}
 			else if(command[0].toLowerCase() == "/chat" && command.length >= 3)
@@ -249,8 +256,6 @@ Telegram.pushNotification = function(data) {
 	var notifObj = data.notification;
 	var uids = data.uids;
 
-	//console.log(data);
-
 	if (!Array.isArray(uids) || !uids.length || !notifObj)
 	{
 		return;
@@ -283,23 +288,15 @@ Telegram.pushNotification = function(data) {
 								next(undefined, S(translated).stripTags().s);
 							});
 						},
-						postIndex: async.apply(posts.getPidIndex, notifObj.pid, uid),
+						postIndex: async.apply(posts.getPidIndex, notifObj.pid, notifObj.tid, ''),
 						topicSlug: async.apply(topics.getTopicFieldByPid, 'slug', notifObj.pid)
 					}, next);
 				},
 				function(data, next) {
 					// Send notification
-					/*
-					var	payload = {
-							device_iden: settings['pushbullet:target'] && settings['pushbullet:target'].length ? settings['pushbullet:target'] : null,
-							type: 'link',
-							title: data.title,
-							url: notifObj.path || nconf.get('url') + '/topic/' + data.topicSlug + '/' + data.postIndex,
-							body: notifObj.bodyLong
-						};
-					*/
+					console.log(data);
 					var title = data.title;
-					var url = notifObj.path || nconf.get('url') + '/topic/' + data.topicSlug + '/' + data.postIndex;
+					var url = notifObj.path || (nconf.get('url') + '/topic/' + data.topicSlug + '/' + data.postIndex);
 					var body = title + "\n\n" + notifObj.bodyLong + "\n\n" + url;
 
 					winston.verbose('[plugins/telegram] Sending notification to uid ' + uid);

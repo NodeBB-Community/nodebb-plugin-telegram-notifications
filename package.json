@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-telegram-notifications",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Allows NodeBB to send notifications over an TelegramBot!",
   "main": "library.js",
   "repository": {
@@ -23,9 +23,10 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "node-telegram-bot-api":"latest"
+    "node-telegram-bot-api":"latest",
+    "lru-cache": "^2.5.0"
   },
   "nbbpm": {
-     "compatibility": "^0.7.0 || ^0.8.0"
+     "compatibility": "^0.8.0"
   }
 }
