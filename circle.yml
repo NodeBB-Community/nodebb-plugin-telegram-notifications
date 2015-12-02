@@ -1,0 +1,15 @@
+machine:
+  node:
+    version: 0.10.40
+deployment:
+  npm:
+    branch: master
+    commands:
+      # login using environment variables
+      - echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
+      - npm run 2npm
+      - node --version
+      - npm --version
+      - nvm --version
+      - npm install 
+      - npm test
