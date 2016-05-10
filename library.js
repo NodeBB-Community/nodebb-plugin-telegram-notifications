@@ -61,7 +61,7 @@ Telegram.init = function(params, callback) {
 	});
 
 	// Start the bot only on the primary instance.
-	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !pubsub.listeners('telegram:notification').length) startBot();
+	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !global.telegram) startBot();
 
 	callback();
 };
@@ -79,7 +79,7 @@ function startBot()
 		message = t.msg;
 
 		// Setup polling way
-		var bot = new TelegramBot(token, {polling: true});
+		var bot = global.telegram = new TelegramBot(token, {polling: true});
 
 		bot.on('text', function (msg) {
 			var chatId = msg.chat.id;
