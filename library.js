@@ -15,6 +15,7 @@ var db = module.parent.require('./database'),
 	lang_cache,
 	translator = module.parent.require('../public/src/modules/translator'),
 	moment = require('./lib/moment.min.js'),
+	pubsub = module.parent.require('./pubsub'),
 
 	Telegram = {};
 var SocketAdmins = module.parent.require('./socket.io/admin');
@@ -23,7 +24,6 @@ var TelegramBot = require('node-telegram-bot-api');
 
 var token = null;
 var message = null;
-var bot = null;
 
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
@@ -35,9 +35,10 @@ Telegram.init = function(params, callback) {
 	};
 	controllers.getTelegramBotSettings = function (req, res, next) {
 		// Renderiza la plantilla
-		bot.getMe().then(function(me){
+		pubsub.once('telegram:me', function(me){
 			res.render('telegrambot/telegramusersettings', {botname:me.username});
 		});
+		pubsub.publish('telegram:getMe');
 	};
 
 	// Create urls
@@ -59,16 +60,14 @@ Telegram.init = function(params, callback) {
 		lang_cache = cache(cacheOpts);
 	});
 
-	startBot();
+	// Start the bot only on the primary instance.
+	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !global.telegram) startBot();
 
 	callback();
 };
 
 function startBot()
 {
-	// For multiple instances servers!!
-	var port = nconf.get('port');
-	var mainPort = 4567; // Main instace port, only one instance can reply and parse commands!
 	// Prepare bot
 	db.getObject('telegrambot-token', function(err, t){
 		if(err || !t)
@@ -78,43 +77,59 @@ function startBot()
 
 		token = t.token;
 		message = t.msg;
-		// Setup polling way
-		bot = new TelegramBot(token, {polling: true});
 
-		if(port == mainPort)
-		{	// Only parse commands and reply on main instance!!
-			bot.on('text', function (msg) {
-				var chatId = msg.chat.id;
-				var userId = msg.from.id;
-				var username = msg.from.username;
-				var text = msg.text;
-				if(!message)
-				{
-					message = "Your Telegram ID: {userid}";
-				}
-				if(text.indexOf("/") == 0)
-				{
-					parseCommands(userId, text);
-				}
-				else
-				{
-					var messageToSend = message.replace("{userid}", msg.from.id);
-					bot.sendMessage(msg.chat.id, messageToSend);
-				}
+		// Setup polling way
+		var bot = global.telegram = new TelegramBot(token, {polling: true});
+
+		bot.on('text', function (msg) {
+			var chatId = msg.chat.id;
+			var userId = msg.from.id;
+			var username = msg.from.username;
+			var text = msg.text;
+			if(!message)
+			{
+				message = "Your Telegram ID: {userid}";
+			}
+			if(text.indexOf("/") == 0)
+			{
+				parseCommands(userId, text);
+			}
+			else
+			{
+				var messageToSend = message.replace("{userid}", msg.from.id);
+				bot.sendMessage(msg.chat.id, messageToSend);
+			}
+		});
+
+		// Notification observer.
+		pubsub.on('telegram:notification', function(data){
+			bot.sendMessage(data.telegramId, data.message);
+		});
+
+		// Settings observer.
+		pubsub.on('telegram:getMe', function(){
+			bot.getMe().then(function(me){
+				pubsub.publish('telegram:me', me);
 			});
-		}
+		});
 	});
 }
 
-var parseCommands = function(telid, mesg)
+var parseCommands = function(telegramId, mesg)
 {
+	function respond(response) {
+		pubsub.publish('telegram:notification', {telegramId: telegramId, message: response});
+	}
+
 	if(mesg.indexOf("/") == 0)
 	{
-		db.sortedSetScore('telegramid:uid', telid, function(err, uid){
+
+		db.sortedSetScore('telegramid:uid', telegramId, function(err, uid){
 			if(err || !uid)
 			{
-				return bot.sendMessage(telid, "UserID not found.. Put your TelegramID again in the telegram settings of the forum. :(");
+				return respond("UserID not found.. Put your TelegramID again in the telegram settings of the forum. :(");
 			}
+
 			var command = mesg.split(" "); // Split command
 			if(command[0].toLowerCase() == "/r" && command.length >= 3)
 			{	// It's a reply to a topic!
@@ -126,26 +141,26 @@ var parseCommands = function(telid, mesg)
 				topics.getTopicData(data.tid, function(err, topicData){
 					if(err || !topicData)
 					{
-						return bot.sendMessage(telid, "Error.. invalid topic..");
+						return respond("Error.. invalid topic..");
 					}
-					var cid = topicData.cid; console.log(topicData);
+					var cid = topicData.cid;
 					user.isReadyToPost(uid, cid, function(err){
 						if(!err)
 						{
 							posts.create(data, function(err, r){
 								if(err)
 								{
-									bot.sendMessage(telid, "Error..");
+									respond("Error..");
 								}
 								else
 								{
-									bot.sendMessage(telid, "OK!");
+									respond("OK!");
 								}
 							});
 						}
 						else
 						{
-							bot.sendMessage(telid, "Error..");
+							respond("Error..");
 						}
 					});
 				});
@@ -156,7 +171,7 @@ var parseCommands = function(telid, mesg)
 				user.getUidByUserslug(command[1], function(err, touid){
 					if(err || !touid)
 					{
-						return bot.sendMessage(telid, "Error..");
+						return respond("Error..");
 					}
 					data.fromuid = uid;
 					command.splice(0, 2); // Delete /chat and username, only keep the message
@@ -164,11 +179,11 @@ var parseCommands = function(telid, mesg)
 					messaging.addMessage(uid, touid, data.content, function(err, r){
 						if(err)
 						{
-							bot.sendMessage(telid, "Error..");
+							respond("Error..");
 						}
 						else
 						{
-							bot.sendMessage(telid, "OK!");
+							respond("OK!");
 						}
 					});
 				});
@@ -181,7 +196,7 @@ var parseCommands = function(telid, mesg)
 				topics.getTopicsFromSet('topics:recent', uid, 0, Math.max(1, numTopics), function(err, topics) {
 					if (err)
 					{
-						return bot.sendMessage(telid, "Error..");
+						return respond("Error..");
 					}
 
 					var response = "";
@@ -196,7 +211,8 @@ var parseCommands = function(telid, mesg)
 						var url = nconf.get("url") + "/topic/" + tid;
 						response += title + " " + time + " by " + user + "\n" + url + "\n~~~~~~~~~~~~~~\n";
 					}
-					bot.sendMessage(telid, response);
+
+					respond(response);
 				});
 			}
 			else if(command[0].toLowerCase() == "/read" && command.length >= 2)
@@ -207,10 +223,9 @@ var parseCommands = function(telid, mesg)
 					posts.getPostsByPids(pids, uid, function(err, posts){
 						if (err)
 						{
-							return bot.sendMessage(telid, "Error..");
+							return respond("Error..");
 						}
-						
-						var response = "";
+
 						var postsuids = [];
 
 						for(var i in posts)
@@ -219,6 +234,7 @@ var parseCommands = function(telid, mesg)
 						}
 
 						user.getMultipleUserFields(postsuids, ["username"], function(err, usernames){
+							var response = "";
 							var numPosts = 10;
 							var start = posts.length-numPosts > 0 ? posts.length-numPosts : 0;
 							for(var i=start; i<posts.length;i++)
@@ -229,8 +245,9 @@ var parseCommands = function(telid, mesg)
 								var tid = posts[i].tid;
 								var time = moment.unix(posts[i].timestamp / 1000).fromNow();
 								response = content + " \n " + time + " by " + username + "\n~~~~~~~~~~~~~~\n";
-								bot.sendMessage(telid, response);
 							}
+
+							respond(response);
 						});
 						
 					});
@@ -253,6 +270,7 @@ Telegram.getUserLanguage = function(uid, callback) {
 };
 
 Telegram.pushNotification = function(data) {
+
 	var notifObj = data.notification;
 	var uids = data.uids;
 
@@ -268,7 +286,7 @@ Telegram.pushNotification = function(data) {
 
 	// Send notification for each user.
 	user.getMultipleUserFields(uids, ["telegramid"], function(err, usersData){
-		//console.log(usersData);
+
 		async.eachSeries(usersData, function iterator(user, cb){
 			var telegramId = user.telegramid;
 			var uid = user.uid;
@@ -299,7 +317,8 @@ Telegram.pushNotification = function(data) {
 					var body = title + "\n\n" + notifObj.bodyLong + "\n\n" + url;
 
 					winston.verbose('[plugins/telegram] Sending notification to uid ' + uid);
-					bot.sendMessage(telegramId, body);
+					pubsub.publish('telegram:notification', {telegramId: telegramId, message: body});
+
 					cb(); // Go next user in array (async.eachSeries)
 				}
 			]);
