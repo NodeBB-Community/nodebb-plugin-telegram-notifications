@@ -2,7 +2,7 @@
 	"id": "nodebb-plugin-telegram-notifications",
 	"name": "Telegram Notifications",
 	"description": "Allows NodeBB to send notifications over an TelegramBot!",
-	"url": "https://github.com/segura2010/nodebb-plugin-telegram-notifications/",
+	"url": "https://github.com/NodeBB-Community/nodebb-plugin-telegram-notifications",
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
