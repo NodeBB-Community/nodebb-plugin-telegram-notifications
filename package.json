@@ -1,11 +1,11 @@
 {
   "name": "nodebb-plugin-telegram-notifications",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Allows NodeBB to send notifications over an TelegramBot!",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/exo-do/nodebb-plugin-telegram-notifications"
+    "url": "https://github.com/NodeBB-Community/nodebb-plugin-telegram-notifications"
   },
   "keywords": [
     "nodebb",
@@ -19,7 +19,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/exo-do/nodebb-plugin-telegram-notifications/issues"
+    "url": "https://github.com/NodeBB-Community/nodebb-plugin-telegram-notifications/issues"
   },
   "readmeFilename": "README.md",
   "dependencies": {
@@ -27,6 +27,6 @@
     "lru-cache": "^2.5.0"
   },
   "nbbpm": {
-     "compatibility": "^0.8.0"
+     "compatibility": "^1.0.0"
   }
 }
