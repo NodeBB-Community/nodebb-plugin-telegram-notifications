@@ -10,8 +10,5 @@
 		{ "hook": "filter:user.profileLinks", "method": "addProfileItem" },
 		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true }
 	],
-	"templates": "static/templates",
-	"scripts": [
-		"lib/client-settings.js"
-	]
+	"templates": "static/templates"
 }
