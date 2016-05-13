@@ -4,7 +4,8 @@ Allows NodeBB to send notifications over an TelegramBot!
 
 ## Installation
 
-Enter to the directory of the plugin and execute:
+Install it from nodebb plugin manager on your admin zone
+or clone it and Enter to the directory of the plugin and execute:
 	
 	npm install
 
@@ -36,5 +37,5 @@ Show last post on a topic
 /read topicID (number of posts)
 
 Known bugs: 
-- Please use restart instead of reload on nodebb to run telegram plugin properly or you will have several instances running
+- Please use restart first time after putin your token on admin zone
 - If you have nodebb scaling you must run the plugin on main server with a port non set on other instances, can change mainport in library.js
