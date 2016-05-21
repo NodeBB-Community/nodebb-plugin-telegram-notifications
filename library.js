@@ -30,11 +30,11 @@ Telegram.init = function(params, callback) {
 	controllers = params.controllers;
 	// Prepare templates
 	controllers.getTelegramBotAdmin = function (req, res, next) {
-		// Renderiza la plantilla
+		// Renders template (*Renderiza la plantilla)
 		res.render('admin/plugins/telegrambot', {});
 	};
 	controllers.getTelegramBotSettings = function (req, res, next) {
-		// Renderiza la plantilla
+		// Renders template (*Renderiza la plantilla)
 		pubsub.once('telegram:me', function(me){
 			res.render('telegrambot/telegramusersettings', {botname:me.username});
 		});
@@ -342,7 +342,7 @@ Telegram.addProfileItem = function(links, callback) {
 };
 
 Telegram.addNavigation = function(custom_header, callback) {
-// Añadimos al menu de admin el acceso a ver los registros
+// Adding to admin menu access to see logs (*Añadimos al menu de admin el acceso a ver los registros)
 	custom_header.plugins.push({
 		route: '/telegrambot',
 		icon: '',
