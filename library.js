@@ -28,6 +28,7 @@ var message = null;
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
 	controllers = params.controllers;
+
 	// Prepare templates
 	controllers.getTelegramBotAdmin = function (req, res, next) {
 		// Renderiza la plantilla
@@ -44,8 +45,8 @@ Telegram.init = function(params, callback) {
 	// Create urls
 	params.router.get('/admin/telegrambot', middleware.buildHeader, controllers.getTelegramBotAdmin);
 	params.router.get('/api/admin/telegrambot', controllers.getTelegramBotAdmin);
-	params.router.get('/telegram/settings', middleware.buildHeader, controllers.getTelegramBotSettings);
-	params.router.get('/api/telegram/settings', controllers.getTelegramBotSettings);
+	params.router.get('/telegram/settings', Telegram.isLoggedIn, middleware.buildHeader, controllers.getTelegramBotSettings);
+	params.router.get('/api/telegram/settings', Telegram.isLoggedIn, controllers.getTelegramBotSettings);
 
 	// User language cache
 	db.getObjectField('global', 'userCount', function(err, numUsers) {
@@ -61,7 +62,23 @@ Telegram.init = function(params, callback) {
 	});
 
 	// Start the bot only on the primary instance.
-	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !global.telegram) startBot();
+	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !global.telegram)
+	{
+		startBot();
+	}
+	else
+	{	// at least get token in all instances to prepare&show menus
+		db.getObject('telegrambot-token', function(err, t)
+		{
+			if(err || !t)
+			{
+				return;
+			}
+
+			token = t.token;
+			message = t.msg;
+		});
+	}
 
 	callback();
 };
@@ -233,7 +250,7 @@ var parseCommands = function(telegramId, mesg)
 							postsuids.push(posts[i].uid);
 						}
 
-						user.getMultipleUserFields(postsuids, ["username"], function(err, usernames){
+						user.getUsersFields(postsuids, ["username"], function(err, usernames){
 							var response = "";
 							var numPosts = 10;
 							var start = posts.length-numPosts > 0 ? posts.length-numPosts : 0;
@@ -350,6 +367,19 @@ Telegram.addNavigation = function(custom_header, callback) {
 	});
 
 	callback(null, custom_header);
+}
+
+
+Telegram.isLoggedIn = function(req, res, next) {
+	// Check if user is logged in (for middleware)
+	if (req.user && parseInt(req.user.uid, 10) > 0)
+	{
+		next();
+	}
+	else
+	{
+		res.redirect('403');
+	}
 }
 
 
