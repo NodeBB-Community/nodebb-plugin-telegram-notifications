@@ -323,7 +323,7 @@ Telegram.pushNotification = function(data) {
 	}
 
 	// Send notification for each user.
-	user.getMultipleUserFields(uids, ["telegramid"], function(err, usersData){
+	user.getUsersFields(uids, ["telegramid"], function(err, usersData){
 
 		async.eachSeries(usersData, function iterator(user, cb){
 			var telegramId = user.telegramid;
