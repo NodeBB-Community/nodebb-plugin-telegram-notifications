@@ -351,7 +351,7 @@ Telegram.pushNotification = function(data) {
 				function(data, next) {
 					// Send notification
 					var title = data.title;
-					var url = notifObj.path || (nconf.get('url') + '/topic/' + data.topicSlug + '/' + data.postIndex);
+					var url = nconf.get('url') + notifObj.path;
 					var body = title + "\n\n" + notifObj.bodyLong + "\n\n" + url;
 
 					winston.verbose('[plugins/telegram] Sending notification to uid ' + uid);
