@@ -7,7 +7,7 @@
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "action:notification.pushed", "method": "pushNotification" },
-		{ "hook": "filter:user.profileLinks", "method": "addProfileItem" },
+		{ "hook": "filter:user.profileMenu", "method": "addProfileItem" },
 		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true }
 	],
 	"templates": "static/templates"

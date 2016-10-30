@@ -365,9 +365,9 @@ Telegram.pushNotification = function(data) {
 };
 
 // Add button in profile
-Telegram.addProfileItem = function(links, callback) {
+Telegram.addProfileItem = function(data, callback) {
 	if (token) {
-		links.push({
+		data.links.push({
 			id: 'telegram',
 			route: '../../telegram/settings',
 			icon: 'fa-mobile',
@@ -376,7 +376,7 @@ Telegram.addProfileItem = function(links, callback) {
 		});
 	}
 
-	callback(null, links);
+	callback(null, data);
 };
 
 Telegram.addNavigation = function(custom_header, callback) {
