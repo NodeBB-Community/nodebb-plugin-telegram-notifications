@@ -151,47 +151,23 @@ var parseCommands = function(telegramId, mesg)
 			var command = mesg.split(" "); // Split command
 			if(command[0].toLowerCase() == "/r" && command.length >= 3)
 			{	// It's a reply to a topic!
-
 				var data = {};
 				data.uid = uid;
 				data.tid = command[1];
 				command.splice(0, 2); // Delete /r and topic id, only keep the message
 				data.content = command.join(" "); // recover the message
 
-				privileges.topics.get(data.tid, uid, function(err, priv){
-					var canReply = priv['topics:reply'];
-					
-					if(!canReply)
-					{
-						return respond("You cant reply to this topic!");
-					}
-
-					topics.getTopicData(data.tid, function(err, topicData){
-						if(err || !topicData)
-						{
-							return respond("Error.. invalid topic..");
-						}
-						var cid = topicData.cid;
-						user.isReadyToPost(uid, cid, function(err){
-							if(!err)
-							{
-								posts.create(data, function(err, r){
-									if(err)
-									{
-										respond("Error..");
-									}
-									else
-									{
-										respond("OK!");
-									}
-								});
-							}
-							else
-							{
-								respond("Error..");
-							}
+				topics.reply(data, function(err, postData){
+					if(err){
+						// Get user language to send the error
+						Telegram.getUserLanguage(uid, function(lang){
+							translator.translate(err.message, lang, function(translated) {
+								respond(translated);
+							});
 						});
-					});
+						return;
+					}
+					return respond("OK!");
 				});
 			}
 			else if(command[0].toLowerCase() == "/chat" && command.length >= 3)
