@@ -25,6 +25,7 @@ var TelegramBot = require('node-telegram-bot-api');
 
 var token = null;
 var message = null;
+var messageQueue = {};
 
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
@@ -95,6 +96,7 @@ function startBot()
 
 		token = t.token;
 		message = t.msg;
+		messageQueue = {};
 
 		// Setup polling way
 		var bot = global.telegram = new TelegramBot(token, {polling: true});
@@ -139,6 +141,14 @@ var parseCommands = function(telegramId, mesg)
 		pubsub.publish('telegram:notification', {telegramId: telegramId, message: response});
 	}
 
+	function respondWithTranslation(uid, response) {
+		Telegram.getUserLanguage(uid, function(lang){
+			translator.translate(response, lang, function(translated) {
+				respond(translated);
+			});
+		});
+	}
+
 	if(mesg.indexOf("/") == 0)
 	{
 
@@ -151,47 +161,31 @@ var parseCommands = function(telegramId, mesg)
 			var command = mesg.split(" "); // Split command
 			if(command[0].toLowerCase() == "/r" && command.length >= 3)
 			{	// It's a reply to a topic!
-
 				var data = {};
 				data.uid = uid;
 				data.tid = command[1];
 				command.splice(0, 2); // Delete /r and topic id, only keep the message
 				data.content = command.join(" "); // recover the message
 
-				privileges.topics.get(data.tid, uid, function(err, priv){
-					var canReply = priv['topics:reply'];
-					
-					if(!canReply)
-					{
-						return respond("You cant reply to this topic!");
-					}
+				if(messageQueue[data.uid]){
+					// check queue to avoid race conditions and flood with many posts
+					// Get user language to send the error
+					respondWithTranslation(uid, "[[error:too-many-messages]]");
+					return;
+				}
 
-					topics.getTopicData(data.tid, function(err, topicData){
-						if(err || !topicData)
-						{
-							return respond("Error.. invalid topic..");
-						}
-						var cid = topicData.cid;
-						user.isReadyToPost(uid, cid, function(err){
-							if(!err)
-							{
-								posts.create(data, function(err, r){
-									if(err)
-									{
-										respond("Error..");
-									}
-									else
-									{
-										respond("OK!");
-									}
-								});
-							}
-							else
-							{
-								respond("Error..");
-							}
-						});
-					});
+				// update queue
+				messageQueue[data.uid] = true;
+
+				topics.reply(data, function(err, postData){
+					delete messageQueue[data.uid];
+					if(err){
+						// Get user language to send the error
+						respondWithTranslation(uid, err.message);
+						return;
+					}
+					respondWithTranslation(uid, "[[success:topic-post]]");
+					return;
 				});
 			}
 			else if(command[0].toLowerCase() == "/chat" && command.length >= 3)
@@ -212,7 +206,7 @@ var parseCommands = function(telegramId, mesg)
 						}
 						else
 						{
-							respond("OK!");
+							respondWithTranslation(uid, "[[success:success]]");
 						}
 					});
 				});
@@ -253,7 +247,7 @@ var parseCommands = function(telegramId, mesg)
 					
 					if(!canRead)
 					{
-						return respond("You cant read this topic!");
+						return respondWithTranslation(uid, "[[error:no-privileges]]");;
 					}
 
 					topics.getPids(tid, function(err, pids){
