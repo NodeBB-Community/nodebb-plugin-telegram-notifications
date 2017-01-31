@@ -141,6 +141,14 @@ var parseCommands = function(telegramId, mesg)
 		pubsub.publish('telegram:notification', {telegramId: telegramId, message: response});
 	}
 
+	function respondWithTranslation(uid, response) {
+		Telegram.getUserLanguage(uid, function(lang){
+			translator.translate(response, lang, function(translated) {
+				respond(translated);
+			});
+		});
+	}
+
 	if(mesg.indexOf("/") == 0)
 	{
 
@@ -162,11 +170,7 @@ var parseCommands = function(telegramId, mesg)
 				if(messageQueue[data.uid]){
 					// check queue to avoid race conditions and flood with many posts
 					// Get user language to send the error
-					Telegram.getUserLanguage(uid, function(lang){
-						translator.translate("[[error:too-many-messages]]", lang, function(translated) {
-							respond(translated);
-						});
-					});
+					respondWithTranslation(uid, "[[error:too-many-messages]]");
 					return;
 				}
 
@@ -177,14 +181,11 @@ var parseCommands = function(telegramId, mesg)
 					delete messageQueue[data.uid];
 					if(err){
 						// Get user language to send the error
-						Telegram.getUserLanguage(uid, function(lang){
-							translator.translate(err.message, lang, function(translated) {
-								respond(translated);
-							});
-						});
+						respondWithTranslation(uid, err.message);
 						return;
 					}
-					return respond("OK!");
+					respondWithTranslation(uid, "[[success:topic-post]]");
+					return;
 				});
 			}
 			else if(command[0].toLowerCase() == "/chat" && command.length >= 3)
@@ -205,7 +206,7 @@ var parseCommands = function(telegramId, mesg)
 						}
 						else
 						{
-							respond("OK!");
+							respondWithTranslation(uid, "[[success:success]]");
 						}
 					});
 				});
@@ -246,7 +247,7 @@ var parseCommands = function(telegramId, mesg)
 					
 					if(!canRead)
 					{
-						return respond("You cant read this topic!");
+						return respondWithTranslation(uid, "[[error:no-privileges]]");;
 					}
 
 					topics.getPids(tid, function(err, pids){
