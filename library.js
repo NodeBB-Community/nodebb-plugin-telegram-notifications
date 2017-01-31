@@ -25,6 +25,7 @@ var TelegramBot = require('node-telegram-bot-api');
 
 var token = null;
 var message = null;
+var messageQueue = {};
 
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
@@ -95,6 +96,7 @@ function startBot()
 
 		token = t.token;
 		message = t.msg;
+		messageQueue = {};
 
 		// Setup polling way
 		var bot = global.telegram = new TelegramBot(token, {polling: true});
@@ -157,7 +159,22 @@ var parseCommands = function(telegramId, mesg)
 				command.splice(0, 2); // Delete /r and topic id, only keep the message
 				data.content = command.join(" "); // recover the message
 
+				if(messageQueue[data.uid]){
+					// check queue to avoid race conditions and flood with many posts
+					// Get user language to send the error
+					Telegram.getUserLanguage(uid, function(lang){
+						translator.translate("[[error:too-many-messages]]", lang, function(translated) {
+							respond(translated);
+						});
+					});
+					return;
+				}
+
+				// update queue
+				messageQueue[data.uid] = true;
+
 				topics.reply(data, function(err, postData){
+					delete messageQueue[data.uid];
 					if(err){
 						// Get user language to send the error
 						Telegram.getUserLanguage(uid, function(lang){
