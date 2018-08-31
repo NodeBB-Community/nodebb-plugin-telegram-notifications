@@ -38,7 +38,7 @@ Telegram.init = function(params, callback) {
 	};
 	controllers.getTelegramBotSettings = function (req, res, next) {
 		// Renders template (*Renderiza la plantilla)
-		pubsub.once('telegram:me', function(me){
+		pubsub.on('telegram:me', function(me){
 			res.render('telegrambot/telegramusersettings', {botname:me.username});
 		});
 		pubsub.publish('telegram:getMe');
