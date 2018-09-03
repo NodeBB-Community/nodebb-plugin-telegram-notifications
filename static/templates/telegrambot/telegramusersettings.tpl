@@ -1,6 +1,7 @@
-<p>Indica tu identificador de Telegram y podrás recibir las notificaciones a través de Telegram!
+<p>Put your telegram ID and you'll be able to receive the notifications through Telegram!
 <br>
-Para saber cual es tu ID, envía un mensaje por Telegram al bot del foro: <a href="http://telegram.me/{botname}" target="_blank">@{botname}</a>
+To find out your ID, just send a telegram message to the forum bot : <a href="http://telegram.me/{botname}" target="_blank">@{botname}</a>
+
 </p>
 <b>Telegram ID: </b>
 <input type="text" id="telegramid">
