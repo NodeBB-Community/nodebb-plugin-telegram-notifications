@@ -116,7 +116,8 @@ function startBot()
 			}
 			else
 			{
-				var messageToSend = message.replace("{userid}", msg.from.id);
+				var messageToSend = message.replace("{userid}", msg.from.id)+"\n"+
+                                    "type /bothelp for commands";
 				bot.sendMessage(msg.chat.id, messageToSend);
 			}
 		});
@@ -188,13 +189,15 @@ var parseCommands = function(telegramId, mesg)
 					return;
 				});
 			}
+/* chat command kills nodebb, so disable it until it's fixed
+*
 			else if(command[0].toLowerCase() == "/chat" && command.length >= 3)
 			{	// It's a reply to a topic!
 				var data = {};
 				user.getUidByUserslug(command[1], function(err, touid){
 					if(err || !touid)
 					{
-						return respond("Error..");
+						return respond("Error: UserID "+command[1]+" not found);
 					}
 					data.fromuid = uid;
 					command.splice(0, 2); // Delete /chat and username, only keep the message
@@ -211,6 +214,7 @@ var parseCommands = function(telegramId, mesg)
 					});
 				});
 			}
+*/
 			else if(command[0].toLowerCase() == "/recent")
 			{
 				var data = {};
@@ -232,7 +236,7 @@ var parseCommands = function(telegramId, mesg)
 						var user = topics[i].user.username;
 						var time = moment.unix(topics[i].lastposttime / 1000).fromNow();
 						var url = nconf.get("url") + "/topic/" + tid;
-						response += title + " " + time + " by " + user + "\n" + url + "\n~~~~~~~~~~~~~~\n";
+						response += title + " " + time + " by " + user + "\n" + url + "\n\n";
 					}
 
 					respond(response);
@@ -275,7 +279,7 @@ var parseCommands = function(telegramId, mesg)
 									content = content.replace(/\<[^\>]*\>/gi, "");
 									var tid = posts[i].tid;
 									var time = moment.unix(posts[i].timestamp / 1000).fromNow();
-									response = content + " \n " + time + " by " + username + "\n~~~~~~~~~~~~~~\n";
+									response = content + " \n " + time + " by " + username + "\n\n";
 
 									respond(response);
 								}
@@ -285,6 +289,17 @@ var parseCommands = function(telegramId, mesg)
 					});
 				});
 			}
+			else if (command[0].toLowerCase() == "/bothelp")
+            {
+                
+                 var response = "I understand the following commands:\n"+
+                            "/recent [<number>]\t- list recent <number> posts.  (Default = 10)\n"+
+                            "/r \t\t<TopicId>  \t- respond to forum topic <TopicId>\n"+
+                            "/read \t <TopicId> \t- read latest posts form Topic <TopicId>\n";
+                 respond(response);
+                            
+            }
+			else respond ("Sorry, I don't understand "+command+" please try again");
 		});
 	}
 };
