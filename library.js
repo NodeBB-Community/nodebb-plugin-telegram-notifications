@@ -108,18 +108,24 @@ function startBot()
 			var text = msg.text;
 			if(!message)
 			{
-				message = "Your Telegram ID: {userid}";
+				message = "\n Hello this is the ForumBot, your Interface to the "+
+                          "Feathercoin Forum (Froum.feahtercoin.com).\n\n"+
+                          "Your Telegram ID: {userid}\n\n"+
+                          "Open a chat with me and type /bothelp to see, what I can do for you\n";
 			}
 			if(text.indexOf("/") == 0)
 			{
 				parseCommands(userId, text);
 			}
 			else
-			{
-				var messageToSend = message.replace("{userid}", msg.from.id)+"\n"+
-                                    "type /bothelp for commands";
-				bot.sendMessage(msg.chat.id, messageToSend);
+            {   
+                if (msg.text == "ForumBot")
+                {
+                    var messageToSend = message.replace("{userid}", msg.from.id)+"\n"
+                    bot.sendMessage(msg.chat.id, messageToSend);
+                }
 			}
+			
 		});
 
 		// Notification observer.
@@ -294,8 +300,8 @@ var parseCommands = function(telegramId, mesg)
                 
                  var response = "I understand the following commands:\n"+
                             "/recent [<number>]\t- list recent <number> posts.  (Default = 10)\n"+
-                            "/r \t\t<TopicId>  \t- respond to forum topic <TopicId>\n"+
-                            "/read \t <TopicId> \t- read latest posts form Topic <TopicId>\n";
+                            "/r \t\t\t<TopicId>  \t- respond to forum topic <TopicId>\n"+
+                            "/read \t\t <TopicId> \t- read latest posts form Topic <TopicId>\n";
                  respond(response);
                             
             }
