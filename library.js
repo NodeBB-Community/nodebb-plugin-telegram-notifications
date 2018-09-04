@@ -381,7 +381,13 @@ Telegram.addProfileItem = function(data, callback) {
 			route: '../../telegram/settings',
 			icon: 'fa-mobile',
 			name: 'Telegram',
-			public: false
+			visibility: {
+                self:true,
+                other:false,
+                moderator:false,
+                globalMod:false,
+                admin:false
+            }
 		});
 	}
 
