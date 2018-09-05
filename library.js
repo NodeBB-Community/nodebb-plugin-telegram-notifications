@@ -163,9 +163,9 @@ function startBot()
 			bot.getMe().then(function(me){
 				pubsub.publish('telegram:me', me);
 			}).catch(function(){});
-		});
-//	});  // function startbot
-}
+		});        
+}   // function startbot
+
 
 var parseCommands = function(telegramId, mesg)
 {
