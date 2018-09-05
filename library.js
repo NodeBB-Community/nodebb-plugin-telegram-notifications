@@ -2,9 +2,10 @@
 
 var db = module.parent.require('./database'),
 	meta = module.parent.require('./meta'),
-	user = module.parent.require('./user'),
+	User = module.parent.require('./user'),
 	posts = module.parent.require('./posts'),
-	topics = module.parent.require('./topics'),
+	Topics = module.parent.require('./topics'),
+	Categories = module.parent.require('./categories'),
 	messaging = module.parent.require('./messaging'),
 	SocketPlugins = module.parent.require('./socket.io/plugins'),
 	winston = module.parent.require('winston'),
@@ -23,10 +24,21 @@ var SocketAdmins = module.parent.require('./socket.io/admin');
 
 var TelegramBot = require('node-telegram-bot-api');
 
+var bot = null;
 var token = null;
 var message = null;
 var messageQueue = {};
-
+var plugin = {
+			config: {
+				telegramid: '',
+                chatid:'',
+				maxLength: '',
+				postCategories: '',
+				topicsOnly: '',
+				messageContent: ''
+			}
+};
+            
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
 	controllers = params.controllers;
@@ -36,6 +48,7 @@ Telegram.init = function(params, callback) {
 		// Renders template (*Renderiza la plantilla)
 		res.render('admin/plugins/telegrambot', {});
 	};
+    // prepare parameter and start the bot
 	controllers.getTelegramBotSettings = function (req, res, next) {
 		// Renders template (*Renderiza la plantilla)
 		pubsub.on('telegram:me', function(me){
@@ -63,24 +76,34 @@ Telegram.init = function(params, callback) {
 		lang_cache = cache(cacheOpts);
 	});
 
+    // get settings
+    meta.settings.get('telegram-notification', function(err, settings) {
+			for (var prop in plugin.config) {
+				if (settings.hasOwnProperty(prop)) {
+					plugin.config[prop] = settings[prop];
+                }
+			}
+			token = plugin.config['telegramid'];
+
 	// Start the bot only on the primary instance.
 	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !global.telegram)
 	{
 		startBot();
 	}
 	else
-	{	// at least get token in all instances to prepare&show menus
-		db.getObject('telegrambot-token', function(err, t)
-		{
-			if(err || !t)
-			{
-				return;
-			}
+	{	 // at least get token in all instances to prepare&show menus
+//		db.getObject('telegrambot-token', function(err, t)
+//		{
+//			if(err || !t)
+//			{
+//				return;
+//			}
 
-			token = t.token;
-			message = t.msg;
-		});
+			token = plugin.config['telegramid'];
+			message = plugin.config['messagecontent'];
+//		});
 	}
+    });
 
 	callback();
 };
@@ -88,29 +111,30 @@ Telegram.init = function(params, callback) {
 function startBot()
 {
 	// Prepare bot
-	db.getObject('telegrambot-token', function(err, t){
-		if(err || !t)
-		{
-			return;
-		}
-
-		token = t.token;
-		message = t.msg;
+		
 		messageQueue = {};
+        //console.log("Token; "+token);
 
 		// Setup polling way
-		var bot = global.telegram = new TelegramBot(token, {polling: true});
+		 bot = global.telegram = new TelegramBot(token, {polling: true, parsemode: 'markdown'});
 
 		bot.on('text', function (msg) {
 			var chatId = msg.chat.id;
 			var userId = msg.from.id;
 			var username = msg.from.username;
 			var text = msg.text;
+            if (plugin.config['chatid'] == '')
+            {
+                plugin.config['chatid'] = msg.chat.id;
+            }
+            
 			if(!message)
 			{
-				message = "\n Hello this is the ForumBot, your Interface to the "+
-                          "Feathercoin Forum (Froum.feahtercoin.com).\n\n"+
-                          "Your Telegram ID: {userid}\n\n"+
+				message = "\n Hello this is the ForumBot\n\n"+
+                          "I am your interface to the "+
+                          "Feathercoin Forum (https://forum.feathercoin.com).\n\n"+
+                          "Your Telegram ID: {userid}\n"+
+                          "ID of this chat:<b> "+msg.chat.id+ "</b>\n"+
                           "Open a chat with me and type /bothelp to see, what I can do for you\n";
 			}
 			if(text.indexOf("/") == 0)
@@ -119,9 +143,10 @@ function startBot()
 			}
 			else
             {   
-                if (msg.text == "ForumBot")
+           //     if (msg.text == "@ForumBot")
+                if (text.toLowerCase() == "@forumbot")
                 {
-                    var messageToSend = message.replace("{userid}", msg.from.id)+"\n"
+                    var messageToSend = message.replace("{userid}", msg.from.id);
                     bot.sendMessage(msg.chat.id, messageToSend);
                 }
 			}
@@ -139,7 +164,7 @@ function startBot()
 				pubsub.publish('telegram:me', me);
 			}).catch(function(){});
 		});
-	});
+//	});  // function startbot
 }
 
 var parseCommands = function(telegramId, mesg)
@@ -184,7 +209,7 @@ var parseCommands = function(telegramId, mesg)
 				// update queue
 				messageQueue[data.uid] = true;
 
-				topics.reply(data, function(err, postData){
+				Topics.reply(data, function(err, postData){
 					delete messageQueue[data.uid];
 					if(err){
 						// Get user language to send the error
@@ -221,12 +246,13 @@ var parseCommands = function(telegramId, mesg)
 				});
 			}
 */
+
 			else if(command[0].toLowerCase() == "/recent")
 			{
 				var data = {};
-				var numTopics = command[1] || 10;
-				numTopics = Math.min(30, numTopics);
-				topics.getTopicsFromSet('topics:recent', uid, 0, Math.max(1, numTopics), function(err, topics) {
+				var numtopics = command[1] || 10;
+				numtopics = Math.min(30, numtopics);
+				Topics.getTopicsFromSet('topics:recent', uid, 0, Math.max(1, numtopics), function(err, topics) {
 					if (err)
 					{
 						return respond("Error..");
@@ -260,11 +286,11 @@ var parseCommands = function(telegramId, mesg)
 						return respondWithTranslation(uid, "[[error:no-privileges]]");;
 					}
 
-					topics.getPids(tid, function(err, pids){
+					Topics.getPids(tid, function(err, pids){
 						posts.getPostsByPids(pids, uid, function(err, posts){
 							if (err)
 							{
-								return respond("Error..");
+								return respond("Error: Coulld not get Posts from topic");
 							}
 
 							var postsuids = [];
@@ -274,7 +300,7 @@ var parseCommands = function(telegramId, mesg)
 								postsuids.push(posts[i].uid);
 							}
 
-							user.getUsersFields(postsuids, ["username"], function(err, usernames){
+							User.getUsersFields(postsuids, ["username"], function(err, usernames){
 								var response = "";
 								var numPosts = 10;
 								var start = posts.length-numPosts > 0 ? posts.length-numPosts : 0;
@@ -310,11 +336,61 @@ var parseCommands = function(telegramId, mesg)
 	}
 };
 
+Telegram.postSave = function(post) {
+		post = post.post;
+		var topicsOnly = plugin.config['topicsOnly'] || 'off';
+		if (topicsOnly === 'off' || (topicsOnly === 'on' && post.isMain)) {
+			var content = post.content;
+
+			async.parallel({
+				user: function(callback) {
+					User.getUserFields(post.uid, ['username', 'picture'], callback);
+				},
+				topic: function(callback) {
+					Topics.getTopicFields(post.tid, ['title', 'slug'], callback);
+				},
+				category: function(callback) {
+					Categories.getCategoryFields(post.cid, ['name', 'bgColor'], callback);
+				}
+			}, function(err, data) {
+				var categories = JSON.parse(plugin.config['postCategories']);
+				if (!categories || categories.indexOf(String(post.cid)) >= 0) {
+					// Trim long posts:
+					var maxQuoteLength = plugin.config['maxLength'] || 1024;
+					if (content.length > maxQuoteLength) { content = content.substring(0, maxQuoteLength) + '...'; }
+
+					// Ensure absolute thumbnail URL:
+					var thumbnail = data.user.picture.match(/^\//) ? forumURL + data.user.picture : data.user.picture;
+
+					// Add custom message:
+					var messageContent = plugin.config['messageContent']+"\n"+content;
+                    
+                         
+/*
+					// Make the rich embed:
+					var embed = new Discord.RichEmbed()
+						.setColor(data.category.bgColor)
+						.setURL(forumURL + '/topic/' + data.topic.slug)
+						.setTitle(data.category.name + ': ' + data.topic.title)
+						.setDescription(content)
+						.setFooter(data.user.username, thumbnail)
+						.setTimestamp();
+*/
+					// Send notification:
+					if (bot) {
+                       bot.sendMessage(plugin.config['chatid'],messageContent.format(parse_mode="markdown").catch(console.error));
+					}
+					else console.log ("Telegram: No bot found:");
+				}
+			});
+		}
+	},
+
 Telegram.getUserLanguage = function(uid, callback) {
 	if (lang_cache && lang_cache.has(uid)) {
 		callback(null, lang_cache.get(uid));
 	} else {
-		user.getSettings(uid, function(err, settings) {
+		User.getSettings(uid, function(err, settings) {
 			var language = settings.language || meta.config.defaultLang || 'en_GB';
 			callback(null, language);
 			lang_cache.set(uid, language);
@@ -322,6 +398,7 @@ Telegram.getUserLanguage = function(uid, callback) {
 	}
 };
 
+/*  changed notification mechanism
 Telegram.pushNotification = function(data) {
 
 	var notifObj = data.notification;
@@ -360,7 +437,7 @@ Telegram.pushNotification = function(data) {
 							});
 						},
 						postIndex: async.apply(posts.getPidIndex, notifObj.pid, notifObj.tid, ''),
-						topicSlug: async.apply(topics.getTopicFieldByPid, 'slug', notifObj.pid)
+						topicSlug: async.apply(Topics.getTopicFieldByPid, 'slug', notifObj.pid)
 					}, next);
 				},
 				function(data, next) {
@@ -378,6 +455,7 @@ Telegram.pushNotification = function(data) {
 		});
 	});
 };
+*/
 
 // Add button in profile
 Telegram.addProfileItem = function(data, callback) {

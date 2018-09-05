@@ -8,7 +8,9 @@
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "action:notification.pushed", "method": "pushNotification" },
 		{ "hook": "filter:user.profileMenu", "method": "addProfileItem" },
-		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true }
+		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true },
+		{ "hook": "action:post.save", "method": "postSave"}	
 	],
-	"templates": "static/templates"
+	"templates": "static/templates",
+	"languages": "./languages"
 }
