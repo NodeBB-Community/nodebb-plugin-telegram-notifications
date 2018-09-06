@@ -4,6 +4,7 @@
 	"telegramid": "Telegram Token",
 	"webhook-help": "This is the string you got when creating your bot in Telegram",
 	"userId": "Telegram user ID number",
+	"roomId": "ID of the Telegram group chat, where the bot is member. \nThe bot must be in the room. you get the ID from the room ", 
 	"telegramSendUser-help": " The user ID number used to send notifications",
 	"notification": "Notifications",
 	"notification-max-length": "Maximum Quote Length",

@@ -10,19 +10,17 @@
 		</div>
 	</div>
 	
-	<!-- not sure if we need the userID here, as we set a user ID in user settings
 	<div class="row">
-		<div class="col-sm-2 col-xs-12 settings-header">[[telegram-notification:userId]]</div>
+		<div class="col-sm-2 col-xs-12 settings-header">[[telegram-notification:roomId]]</div>
 		<div class="col-sm-10 col-xs-12">
 			<div class="form-group">
-				<label for="userId">[[telegram-notification:userId]]</label>
-				<input type="text" class="form-control" id="userId" name="userId" />
-				<p class="help-block">[[telegram-notification:telegramSendUser-help]]</p>
+				<label for="RoomId">[[telegram-notification:RoomId]]</label>
+				<input type="text" class="form-control" id="roomId" name="roomId" />
+				<p class="help-block">[[telegram-notification:telegramRoom-help]]</p>
 			</div>
 		</div>
 	</div>
-	-->
-	
+		
 	<div class="row">
 		<div class="col-sm-2 col-xs-12 settings-header">[[telegram-notification:notification]]</div>
 		<div class="col-sm-10 col-xs-12">
