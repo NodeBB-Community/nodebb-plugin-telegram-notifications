@@ -1,4 +1,9 @@
+(function(module) {
 "use strict";
+
+require('./lib/nodebb.js');
+
+var Telegram = {};
 
 var db = module.parent.require('./database'),
 	meta = module.parent.require('./meta'),
@@ -19,11 +24,10 @@ var db = module.parent.require('./database'),
 	pubsub = module.parent.require('./pubsub'),
 	privileges = module.parent.require('./privileges'),
 
-	Telegram = {};
+	Settings = require('./lib/userSettings.js')(Telegram),
+ //   SocketAdmins = module.parent.require('./socket.io/admin');
 
-var SocketAdmins = module.parent.require('./socket.io/admin');
-
-var TelegramBot = require('node-telegram-bot-api');
+    TelegramBot = require('node-telegram-bot-api');
 
 var bot = null;
 var token = null;
@@ -44,7 +48,6 @@ var plugin = {
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
 	controllers = params.controllers;
-
 	// Prepare templates
 	controllers.getTelegramBotAdmin = function (req, res, next) {
 		// Renders template (*Renderiza la plantilla)
@@ -186,6 +189,7 @@ var parseCommands = function(telegramId, mesg)
 	{
 
 		db.sortedSetScore('telegramid:uid', telegramId, function(err, uid){
+            console.log(err,uid);
 			if(err || !uid)
 			{
 				return respond("UserID not found.. Put your TelegramID again in the telegram settings of the forum. :(");
@@ -461,26 +465,7 @@ Telegram.pushNotification = function(data) {
 };
 */
 
-// Add button in profile
-Telegram.addProfileItem = function(data, callback) {
-	if (token) {
-		data.links.push({
-			id: 'telegram',
-			route: '../../telegram/settings',
-			icon: 'fa-mobile',
-			name: 'Telegram',
-			visibility: {
-                self:true,
-                other:false,
-                moderator:false,
-                globalMod:false,
-                admin:false
-            }
-		});
-	}
 
-	callback(null, data);
-};
 
 Telegram.addNavigation = function(custom_header, callback) {
 // Adding to admin menu access to see logs (*Añadimos al menu de admin el acceso a ver los registros)
@@ -507,46 +492,8 @@ Telegram.isLoggedIn = function(req, res, next) {
 }
 
 
-// Sockets
-/*
-SocketAdmins.setTelegramToken = function (socket, data, callback)
-{
-	var t = {token:data.token, msg:data.msg};
-	db.setObject('telegrambot-token', data, callback);
-}
-
-SocketAdmins.getTelegramToken = function (socket, data, callback)
-{
-	db.getObject('telegrambot-token', callback);
-}
-*/
-
-SocketPlugins.setTelegramID = function (socket, data, callback)
-{
-	user.getUserField(socket.uid, "telegramid", function(err, telid){
-		if(telid)
-		{
-			db.sortedSetRemove("telegramid:uid", telid); // Remove previus index
-		}
-		user.setUserField(socket.uid, "telegramid", data, function(err){
-			if(data && data != "")
-			{
-				var obj = { value: data, score:socket.uid };
-				db.sortedSetAdd("telegramid:uid", socket.uid, data, callback); // Index to get uid from telegramid
-			}
-			else
-			{
-				callback(null, "");
-			}
-		});
-	});
-}
-
-
-SocketPlugins.getTelegramID = function (socket, data, callback)
-{
-	user.getUserField(socket.uid, "telegramid", callback);
-}
 
 
 module.exports = Telegram;
+
+}(module));
