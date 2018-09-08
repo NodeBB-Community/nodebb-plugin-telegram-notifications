@@ -141,6 +141,12 @@ function startBot()
                           "ID of this chat:<b> "+msg.chat.id+ "</b>\n"+
                           "Open a chat with me and type /bothelp to see, what I can do for you\n";
 			}
+			if (text.toLowerCase().indexOf("@forumbot") >=3)
+            { 
+               var text2 = text.split("@forumbot"); //remove the @forumbot, that should be at the end of the command
+               text = text2.join(" "); //recover the command
+            }
+            
 			if(text.indexOf("/") == 0)
 			{
 				parseCommands(userId, text);
@@ -189,12 +195,11 @@ var parseCommands = function(telegramId, mesg)
 	{
 
 		db.sortedSetScore('telegramid:uid', telegramId, function(err, uid){
-            console.log(err,uid);
 			if(err || !uid)
 			{
 				return respond("UserID not found.. Put your TelegramID again in the telegram settings of the forum. :(");
 			}
-
+            mesg = mesg.replace(","," ");   //the client may insert a "," after the first word of the input
 			var command = mesg.split(" "); // Split command
 			if(command[0].toLowerCase() == "/r" && command.length >= 3)
 			{	// It's a reply to a topic!
