@@ -16,11 +16,14 @@ This will install all libs the plugin needs.
 1. Install and activate this plugin.
 2. [Create your Bot](https://core.telegram.org/bots/), and obtain your bot token
 3. Enter the token into the plugin's setup page (`/admin/telegram`), and save.
-4. Reload NodeBB.
+4. add your bot to any telegram chat.
+5. get the room id of that chatroom and enter it into the plugin's setup page.
+6. Select the categories to generate Telegram notification messages on the pulugin's setup page
+7. Reload NodeBB.
 
 ## User Config
 1. Talk to the bot and get user token
-2. Go to yourdomain/telegram/settings and fill the token
+2. Go to your user settings and fill the token
 3. Have fun
 
 ## Commands on telegram
