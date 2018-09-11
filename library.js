@@ -34,20 +34,22 @@ var token = null;
 var message = null;
 var messageQueue = {};
 var plugin = {
-			config: {
-				telegramid: '',
-                chatid:'',
-                roomId:'',
-				maxLength: '',
-				postCategories: '',
-				topicsOnly: '',
-				messageContent: ''
-			}
-};
+		config: {
+			telegramid: '',
+               chatid:'',
+               roomId:'',
+			maxLength: '',
+			postCategories: '',
+			topicsOnly: '',
+			messageContent: ''
+		}
+    };
+
             
 Telegram.init = function(params, callback) {
 	var middleware = params.middleware,
 	controllers = params.controllers;
+
 	// Prepare templates
 	controllers.getTelegramBotAdmin = function (req, res, next) {
 		// Renders template (*Renderiza la plantilla)
@@ -82,7 +84,7 @@ Telegram.init = function(params, callback) {
 	});
 
     // get settings
-    meta.settings.get('telegram-notification', function(err, settings) {
+       meta.settings.get('telegram-notification', function(err, settings) {
 			for (var prop in plugin.config) {
 				if (settings.hasOwnProperty(prop)) {
 					plugin.config[prop] = settings[prop];
