@@ -1,0 +1,18 @@
+{
+	"title": "Уведомления в Telegram",
+	"webhook": "Webhook",
+	"webhook-url": "URL",
+	"webhook-help": "Скопируйте URL со страницы <em>Настройки сервера &rarr; Webhook’и</em>",
+	"userId": "Telegram user ID number",
+	"roomId": "ID of the Telegram group chat, where the bot is member. \nThe bot must be in the room. you get the ID from the room ", 
+	"telegramSendUser-help": " The user ID number used to send notifications",
+
+	"notification": "Уведомления",
+	"notification-max-length": "Макс. длина цитаты",
+	"notification-max-length-help": "До 1024 символов",
+	"post-categories": "Рубрики",
+	"topics-only": "Уведомлять только о новых темах",
+	"message": "Сообщение",
+	"message-sidenote": "не обязательно",
+	"message-help": "Это сообщение будет расположено над встроенным содержимым уведомления (максимум 512 символов)."
+}

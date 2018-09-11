@@ -1,0 +1,17 @@
+{
+	"title": "Telegram Notifications",
+	"webhook": "Telegram ID",
+	"telegramid": "Telegram Token",
+	"webhook-help": "This is the string you got when creating your bot in Telegram",
+	"userId": "Telegram user ID number",
+	"roomId": "ID of the Telegram group chat, where the bot is member. \nThe bot must be in the room. you get the ID from the room ", 
+	"telegramSendUser-help": " The user ID number used to send notifications",
+	"notification": "Notifications",
+	"notification-max-length": "Maximum Quote Length",
+	"notification-max-length-help": "Up to 1024 characters",
+	"post-categories": "Categories",
+	"topics-only": "Notify for new topics only",
+	"message": "Message",
+	"message-sidenote": "Leave blank to disable",
+	"message-help": "Set a custom message to be placed before the embedded content (up to 512 characters)."
+}

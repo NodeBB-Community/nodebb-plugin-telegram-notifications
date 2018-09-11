@@ -7,8 +7,13 @@
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "action:notification.pushed", "method": "pushNotification" },
+		{ "hook": "action:post.save", "method": "postSave"},
+        { "hook": "action:user.saveSettings", "method": "saveUserSettings"},
 		{ "hook": "filter:user.profileMenu", "method": "addProfileItem" },
-		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true }
-	],
-	"templates": "static/templates"
+		{ "hook": "filter:admin.header.build", "method": "addNavigation", "callbacked": true },
+		{ "hook": "filter:user.customSettings", "method": "addUserSettings"},
+		{ "hook": "filter:user.getSettings", "method": "getUserSettings"}
+],
+	"templates": "static/templates",
+	"languages": "./languages"
 }
