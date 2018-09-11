@@ -1,0 +1,19 @@
+{
+	"title": "Telegram Benachrichtigungen",
+	"webhook": "Telegram ID",
+	"telegramid": "Telegram Token",
+	"webhook-help": "Diesen Schlüssel bekommen Sie während der Bot-Erstelling in Telegram ",
+	"userId": "Telegram Benutzernummer",
+	"roomId": "Telegam Chat",
+	"RoomId": "Room Id",
+	"telegramRoom-help": "Die ID der Telegram Chatgruppe, wo der Bot Ankündigungen publiziert. \nDer Bot Mitglied des Chat sein. Sie bekommen die ID in der Detailanzeige der Chatgruppe", 
+	"telegramSendUser-help": " The Benutzernummer um Ankündigungen zu senden",
+	"notification": "Benachrichtigungen",
+	"notification-max-length": "Maximale Länge der Benachrichtigungen",
+	"notification-max-length-help": "Bis zu 1024 Zeichen",
+	"post-categories": "Kategorien",
+	"topics-only": "Benachrichtigung nur bei neuen Topics",
+	"message": "Zusatztext",
+	"message-sidenote": "leeres Feld unterdrückt Zusatztext",
+	"message-help": "Ein Zusatztexts, der vor dem Text der Benachrichtigung angezeigt wird (maximal 512 Zeichen)."
+}
