@@ -137,11 +137,13 @@ function startBot()
 			if(!message)
 			{
 				message = "\n Hello this is the ForumBot\n\n"+
-                          "I am your interface to the "+
-                          "Feathercoin Forum (https://forum.feathercoin.com).\n\n"+
+                          "I am your interface to your "+
+                          "NodeBB Forum\n\n"+
                           "Your Telegram ID: {userid}\n"+
                           "ID of this chat:<b> "+msg.chat.id+ "</b>\n"+
-                          "Open a chat with me and type /bothelp to see, what I can do for you\n";
+                          "Open a chat with me and type /bothelp to see, what I can do for you\n"+
+                          "You even may enter commands here: like '/<command> <parameters>@forumbot', "+
+                          "but I always ill answer in private chat only";
 			}
 			if (text.toLowerCase().indexOf("@forumbot") >=3)
             { 
