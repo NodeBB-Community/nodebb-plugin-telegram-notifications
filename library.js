@@ -7,7 +7,7 @@ var Telegram = {};
 
 var db = module.parent.require('./database'),
 	meta = module.parent.require('./meta'),
-	User = module.parent.require('./user'),
+	user = module.parent.require('./user'),
 	posts = module.parent.require('./posts'),
 	Topics = module.parent.require('./topics'),
 	Categories = module.parent.require('./categories'),
@@ -269,7 +269,7 @@ var parseCommands = function(telegramId, mesg)
 				Topics.getTopicsFromSet('topics:recent', uid, 0, Math.max(1, numtopics), function(err, topics) {
 					if (err)
 					{
-						return respond("Error..");
+						return respond("[[error:no-recent-topics]]");
 					}
 
 					var response = "";
@@ -304,7 +304,7 @@ var parseCommands = function(telegramId, mesg)
 						posts.getPostsByPids(pids, uid, function(err, posts){
 							if (err)
 							{
-								return respond("Error: Coulld not get Posts from topic");
+								return respond("[[error:no-posts-for-topic]]");
 							}
 
 							var postsuids = [];
@@ -314,7 +314,7 @@ var parseCommands = function(telegramId, mesg)
 								postsuids.push(posts[i].uid);
 							}
 
-							User.getUsersFields(postsuids, ["username"], function(err, usernames){
+							user.getUsersFields(postsuids, ["username"], function(err, usernames){
 								var response = "";
 								var numPosts = 10;
 								var start = posts.length-numPosts > 0 ? posts.length-numPosts : 0;
@@ -345,7 +345,7 @@ var parseCommands = function(telegramId, mesg)
                  respond(response);
                             
             }
-			else respond ("Sorry, I don't understand "+command+" please try again");
+			else respond ("[[Sorry, I don't understand]] "+command+" [[try again]]");
 		});
 	}
 };
@@ -356,12 +356,13 @@ Telegram.postSave = function(post) {
         var roomId= -plugin.config['roomId'];
 		var topicsOnly = plugin.config['topicsOnly'] || 'off';
 		if (topicsOnly === 'off' || (topicsOnly === 'on' && post.isMain)) {
-			var content = post.content;
+			var content = nconf.get('url')+'topic/'+post-tid;
+        
            
 
 			async.parallel({
 				user: function(callback) {
-					User.getUserFields(post.uid, ['username', 'picture'], callback);
+					user.getUserFields(post.uid, ['username', 'picture'], callback);
 				},
 				topic: function(callback) {
 					Topics.getTopicFields(post.tid, ['title', 'slug'], callback);
@@ -374,13 +375,16 @@ Telegram.postSave = function(post) {
 				if (!categories || categories.indexOf(String(post.cid)) >= 0) {
 					// Trim long posts:
 					var maxQuoteLength = plugin.config['maxLength'] || 1024;
-					if (content.length > maxQuoteLength) { content = content.substring(0, maxQuoteLength) + '...'; }
+					if (content.length > maxQuoteLength) { 
+                        content = content.substring(0, maxQuoteLength) + '...\n';
+                    }
 
 					// Ensure absolute thumbnail URL:
 					var thumbnail = data.user.picture.match(/^\//) ? forumURL + data.user.picture : data.user.picture;
 
 					// Add custom message:
 					var messageContent = plugin.config['messageContent']+"\n"+content;
+                    messageContent = S(messageContent).unescapeHTML().stripTags().unescapeHTML().s
                     
                          
 /*
@@ -407,7 +411,7 @@ Telegram.getUserLanguage = function(uid, callback) {
 	if (lang_cache && lang_cache.has(uid)) {
 		callback(null, lang_cache.get(uid));
 	} else {
-		User.getSettings(uid, function(err, settings) {
+		user.getSettings(uid, function(err, settings) {
 			var language = settings.language || meta.config.defaultLang || 'en_GB';
 			callback(null, language);
 			lang_cache.set(uid, language);
@@ -415,11 +419,17 @@ Telegram.getUserLanguage = function(uid, callback) {
 	}
 };
 
-/*  changed notification mechanism
+/* changed notification mechanism
+ * Users need to join the configured Telegram room now in order to be notified,
+ * as there may be non- forum members on telegram.
+ * the method below can be enabled again to provide additional notifications to 
+ * forum users with configured telegram ID
+ */
 Telegram.pushNotification = function(data) {
 
 	var notifObj = data.notification;
 	var uids = data.uids;
+    console.log('pushNotification:\n',notifObj);
 
 	if (!Array.isArray(uids) || !uids.length || !notifObj)
 	{
@@ -472,7 +482,7 @@ Telegram.pushNotification = function(data) {
 		});
 	});
 };
-*/
+/**/
 
 
 
