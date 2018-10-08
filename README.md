@@ -18,7 +18,7 @@ This will install all libs the plugin needs.
 3. Enter the token into the plugin's setup page (`/admin/telegram`), and save.
 4. add your bot to any telegram chat.
 5. get the room id of that chatroom and enter it into the plugin's setup page.
-6. Select the categories to generate Telegram notification messages on the pulugin's setup page
+6. Select the categories to generate Telegram notification messages on the plugin's setup page
 7. Reload NodeBB.
 
 ## User Config
