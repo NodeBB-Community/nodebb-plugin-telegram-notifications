@@ -121,6 +121,7 @@ function startBot()
 		messageQueue = {};
         //console.log("Token; "+token);
 
+        
 		// Setup polling way
 		 bot = global.telegram = new TelegramBot(token,{polling: true});
 
@@ -356,9 +357,7 @@ Telegram.postSave = function(post) {
         var roomId= -plugin.config['roomId'];
 		var topicsOnly = plugin.config['topicsOnly'] || 'off';
 		if (topicsOnly === 'off' || (topicsOnly === 'on' && post.isMain)) {
-			var content = nconf.get('url')+'/topic/'+post.tid+"\n"
-            
-        
+			var content = post.content;
            
 
 			async.parallel({
@@ -384,9 +383,10 @@ Telegram.postSave = function(post) {
 
 					// Add custom message:
 					var messageContent = plugin.config['messageContent']+"\n"+content;
-                  //  messageContent = S(messageContent).unescapeHTML().stripTags().unescapeHTML().s
+                    messageContent += "\n\n"+nconf.get('url')+'/topic/'+data.topic.slug+"/";
+
+         //           messageContent = S(messageContent).unescapeHTML().stripTags().unescapeHTML().s
                     
-                         
 /*
 					// Make the rich embed:
 					var embed = new Discord.RichEmbed()
