@@ -150,12 +150,13 @@ function startBot()
             { 
                var text2 = text.split("@forumbot"); //remove the @forumbot, that should be at the end of the command
                text = text2.join(" "); //recover the command
-            }
+
             
-			if(text.indexOf("/") == 0)
-			{
-				parseCommands(userId, text);
-			}
+                if(text.indexOf("/") == 0)
+                {
+                    parseCommands(userId, text);
+                }
+            }
 			else
             {   
            //     if (msg.text == "@ForumBot")
