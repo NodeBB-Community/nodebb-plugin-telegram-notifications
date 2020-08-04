@@ -5,27 +5,27 @@ require('./lib/nodebb.js');
 
 var Telegram = {};
 
-var db = module.parent.require('./database'),
-	meta = module.parent.require('./meta'),
-	user = module.parent.require('./user'),
-	posts = module.parent.require('./posts'),
-	Topics = module.parent.require('./topics'),
-	Categories = module.parent.require('./categories'),
-	messaging = module.parent.require('./messaging'),
-	SocketPlugins = module.parent.require('./socket.io/plugins'),
-	winston = module.parent.require('winston'),
-	nconf = module.parent.require('nconf'),
-	async = module.parent.require('async'),
-	S = module.parent.require('string'),
+var db = require.main.require('./src/database'),
+	meta = require.main.require('./src/meta'),
+	user = require.main.require('./src/user'),
+	posts = require.main.require('./src/posts'),
+	Topics = require.main.require('./src/topics'),
+	Categories = require.main.require('./src/categories'),
+	messaging = require.main.require('./src/messaging'),
+	SocketPlugins = require.main.require('./src/socket.io/plugins'),
+	winston = require.main.require('winston'),
+	nconf = require.main.require('nconf'),
+	async = require.main.require('async'),
+	S = require.main.require('string'),
 	cache = require('lru-cache'),
 	lang_cache,
-	translator = module.parent.require('../public/src/modules/translator'),
+	translator = require.main.require('./public/src/modules/translator'),
 	moment = require('./lib/moment.min.js'),
-	pubsub = module.parent.require('./pubsub'),
-	privileges = module.parent.require('./privileges'),
+	pubsub = require.main.require('./src/pubsub'),
+	privileges = require.main.require('./src/privileges'),
 
 	Settings = require('./lib/userSettings.js')(Telegram),
- //   SocketAdmins = module.parent.require('./socket.io/admin');
+ //   SocketAdmins = require.main.require('./socket.io/admin');
 
     TelegramBot = require('node-telegram-bot-api');
 
@@ -93,21 +93,25 @@ Telegram.init = function(params, callback) {
 			token = plugin.config['telegramid'];
 
 	// Start the bot only on the primary instance and if a bot token is configured
-	if(nconf.get('isPrimary') === 'true' && !nconf.get('jobsDisabled') && !global.telegram && token)
-	{
+	if(nconf.get('isPrimary') && !nconf.get('jobsDisabled') && token)
+	{ 
+		console.log("trying to start Telegram Bot")
 		startBot();
+		if (bot) {
+			console.log("Telegram Bot started\n")
+		}
 	}
-	else
+	//else
 	{	 // at least get token in all instances to prepare&show menus
-//		db.getObject('telegrambot-token', function(err, t)
-//		{
-//			if(err || !t)
-//			{
-//				return;
-//			}
+		db.getObject('telegrambot-token', function(err, t)
+		{
+			if(err || !t)
+			{
+				return;
+			}
 
 			message = plugin.config['messagecontent'];
-//		});
+		});
 	}
     });
 
@@ -119,7 +123,7 @@ function startBot()
 	// Prepare bot
 		
 		messageQueue = {};
-        //console.log("Token; "+token);
+        	console.log("\n\n\nToken; "+token+"\n\n\n");
 
         
 		// Setup polling way
@@ -150,14 +154,9 @@ function startBot()
             { 
                var text2 = text.split("@forumbot"); //remove the @forumbot, that should be at the end of the command
                text = text2.join(" "); //recover the command
-
             
-                if(text.indexOf("/") == 0)
-                {
-                    parseCommands(userId, text);
-                }
-            }
-			else
+	    }
+  	    else
             {   
            //     if (msg.text == "@ForumBot")
                 if (text.toLowerCase() == "@forumbot")
@@ -165,9 +164,16 @@ function startBot()
                     var messageToSend = message.replace("{userid}", msg.from.id);
                     bot.sendMessage(msg.chat.id, messageToSend);
                 }
+		else
+		    {
+	    		if(text.indexOf("/") == 0)
+			{	
+				parseCommands(userId, text);
 			}
+		    }
+            }
 			
-		});
+	});
 
 		// Notification observer.
 		pubsub.on('telegram:notification', function(data){
@@ -205,16 +211,14 @@ var parseCommands = function(telegramId, mesg)
 			{
 				return respond("UserID not found.. Put your TelegramID again in the telegram settings of the forum. :(");
 			}
-            mesg = mesg.replace(","," ");   //the client may insert a "," after the first word of the input
 			var command = mesg.split(" "); // Split command
-			if(command[0].toLowerCase() == "/r" && command.length >= 3)
+			if(command[0].toLowerCase() == "/reply" && command.length >= 2)
 			{	// It's a reply to a topic!
 				var data = {};
 				data.uid = uid;
 				data.tid = command[1];
-				command.splice(0, 2); // Delete /r and topic id, only keep the message
+				command.splice(0, 2); // Delete /reply and topic id, only keep the message
 				data.content = command.join(" "); // recover the message
-
 				if(messageQueue[data.uid]){
 					// check queue to avoid race conditions and flood with many posts
 					// Get user language to send the error
@@ -342,7 +346,7 @@ var parseCommands = function(telegramId, mesg)
                 
                  var response = "I understand the following commands:\n"+
                             "/recent [<number>]\t- list recent <number> posts.  (Default = 10)\n"+
-                            "/r \t\t\t<TopicId>  \t- respond to forum topic <TopicId>\n"+
+                            "/reply \t\t\t<TopicId>  \t- respond to forum topic <TopicId>\n"+
                             "/read \t\t <TopicId> \t- read latest posts form Topic <TopicId>\n";
                  respond(response);
                             
@@ -430,7 +434,7 @@ Telegram.pushNotification = function(data) {
 
 	var notifObj = data.notification;
 	var uids = data.uids;
-    console.log('pushNotification:\n',notifObj);
+    	console.log('pushNotification:\n',notifObj);
 
 	if (!Array.isArray(uids) || !uids.length || !notifObj)
 	{
